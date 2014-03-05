@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">SocilaSharingDialogs</string>
+    <string name="send_button_text">Send</string>
+</resources>
