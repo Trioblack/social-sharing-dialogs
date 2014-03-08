@@ -17,6 +17,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.noveo.dialogs.R;
+import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
 import org.scribe.builder.ServiceBuilder;
@@ -30,44 +31,50 @@ import java.util.regex.Pattern;
 
 import twitter4j.auth.AccessToken;
 
-public class WebViewFragment extends Fragment {
-    private static final String CONSUMER_KEY_TAG = "consumer_key_tag";
-    private static final String CONSUMER_SECRET_KEY_TAG = "consumer_secret_key_tag";
-
-    public String consumerKey;
-    public String consumerSecretKey;
+class WebViewFragment extends Fragment {
+    private String consumerKey;
+    private String consumerSecretKey;
 
     public ProgressBar progressBar;
     public WebView webView;
 
-    public OAuthService service;
-    public String verifyCode = null;
-    public Token requestToken;
-    public Token accessToken;
-    public AccessToken accessToken4j;
+    private OAuthService service;
+    private String verifyCode = null;
+    private Token requestToken;
+    private Token accessToken;
+    private AccessToken accessToken4j;
+    private TwitterShareDialog.Payload payload;
 
     public WebViewFragment() {
         super();
     }
 
-    public static WebViewFragment newInstance(final String consumerKey, final String consumerSecretKey) {
+    public static WebViewFragment newInstance(final String consumerKey, final String consumerSecretKey, TwitterShareDialog.Payload payload) {
         WebViewFragment fragment = new WebViewFragment();
-        Bundle args = new Bundle();
-        args.putString(CONSUMER_KEY_TAG, consumerKey);
-        args.putString(CONSUMER_SECRET_KEY_TAG, consumerSecretKey);
-        fragment.setArguments(args);
+        Bundle arguments = new Bundle();
+
+        BundleUtils.putCustomerToken(arguments, consumerKey);
+        BundleUtils.putCustomerSecretToken(arguments, consumerSecretKey);
+        BundleUtils.putPayload(arguments, payload);
+        fragment.setArguments(arguments);
 
         return fragment;
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final Bundle arguments = getArguments();
+        if (arguments != null) {
+            payload = BundleUtils.getPayload(arguments);
+            consumerKey = BundleUtils.getCustomerToken(arguments);
+            consumerSecretKey = BundleUtils.getCustomerSecretToken(arguments);
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.webview_fragment_layout, container, false);
-
-        if (getArguments() != null) { // TODO : Add check exists
-            consumerKey = getArguments().getString(CONSUMER_KEY_TAG);
-            consumerSecretKey = getArguments().getString(CONSUMER_SECRET_KEY_TAG);
-        }
 
         webView = (WebView) rootView.findViewById(R.id.webview);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progress);
@@ -169,8 +176,9 @@ public class WebViewFragment extends Fragment {
     }
 
     private void openSendMessageFragment() {
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, UpdateStatusFragment.newInstance(consumerKey, consumerSecretKey));
+        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        final Fragment fragment = UpdateStatusFragment.newInstance(consumerKey, consumerSecretKey, payload);
+        fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.commit();
     }
 }

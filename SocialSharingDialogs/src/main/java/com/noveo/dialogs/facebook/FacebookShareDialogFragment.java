@@ -45,7 +45,7 @@ import java.io.Serializable;
 
 public class FacebookShareDialogFragment extends DialogFragment implements Session.StatusCallback {
 
-    private static final String EXTRA_PAYLOAD = "payload";
+    private static final String EXTRA_PAYLOAD = "facebook_payload";
     private static final String FRAGMENT_TAG = "facebook_share_dialog";
     private Payload payload;
     private UiLifecycleHelper uiHelper;
@@ -177,6 +177,27 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         }
     }
 
+    public static class FacebookWebDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            final FacebookShareDialogFragment parentFragment = (FacebookShareDialogFragment)getParentFragment();
+            final Payload payload = parentFragment.getPayload();
+            return new WebDialog.FeedDialogBuilder(getActivity(), Session.getActiveSession())
+                .setCaption(payload.getCaption())
+                .setDescription(payload.getDescription())
+                .setLink(payload.getLink())
+                .setName(payload.getName())
+                .setPicture(payload.getPicture())
+                .setOnCompleteListener(new WebDialog.OnCompleteListener() {
+                    @Override
+                    public void onComplete(final Bundle values, final FacebookException error) {
+                        parentFragment.onShareFinished();
+                    }
+                })
+                .build();
+        }
+    }
+
     public static final class Payload implements Serializable {
         private String link;
         private String caption;
@@ -224,26 +245,4 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
             this.picture = picture;
         }
     }
-
-    public static class FacebookWebDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(final Bundle savedInstanceState) {
-            final FacebookShareDialogFragment parentFragment = (FacebookShareDialogFragment)getParentFragment();
-            final Payload payload = parentFragment.getPayload();
-            return new WebDialog.FeedDialogBuilder(getActivity(), Session.getActiveSession())
-                .setCaption(payload.getCaption())
-                .setDescription(payload.getDescription())
-                .setLink(payload.getLink())
-                .setName(payload.getName())
-                .setPicture(payload.getPicture())
-                .setOnCompleteListener(new WebDialog.OnCompleteListener() {
-                    @Override
-                    public void onComplete(final Bundle values, final FacebookException error) {
-                        parentFragment.onShareFinished();
-                    }
-                })
-                .build();
-        }
-    }
-
 }

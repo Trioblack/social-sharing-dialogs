@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.noveo.dialogs.R;
+import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
 import twitter4j.Status;
@@ -19,25 +20,36 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 
-public class UpdateStatusFragment extends Fragment {
+class UpdateStatusFragment extends Fragment {
     public EditText statusEditText;
     public Button sendButton;
     public AccessToken accessToken4j;
 
-    private static final String CONSUMER_KEY_TAG = "consumer_key_tag";
-    private static final String CONSUMER_SECRET_KEY_TAG = "consumer_secret_key_tag";
+    private String consumerKey;
+    private String consumerSecretKey;
+    private TwitterShareDialog.Payload payload;
 
-    public String consumerKey;
-    public String consumerSecretKey;
-
-    public static UpdateStatusFragment newInstance(final String consumerKey, final String consumerSecretKey) {
+    public static UpdateStatusFragment newInstance(final String consumerKey, final String consumerSecretKey, TwitterShareDialog.Payload payload) {
         UpdateStatusFragment fragment = new UpdateStatusFragment();
-        Bundle args = new Bundle();
-        args.putString(CONSUMER_KEY_TAG, consumerKey);
-        args.putString(CONSUMER_SECRET_KEY_TAG, consumerSecretKey);
-        fragment.setArguments(args);
+        Bundle arguments = new Bundle();
+
+        BundleUtils.putCustomerToken(arguments, consumerKey);
+        BundleUtils.putCustomerSecretToken(arguments, consumerSecretKey);
+        BundleUtils.putPayload(arguments, payload);
+        fragment.setArguments(arguments);
 
         return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final Bundle arguments = getArguments();
+        if (arguments != null) {
+            payload = BundleUtils.getPayload(arguments);
+            consumerKey = BundleUtils.getCustomerToken(arguments);
+            consumerSecretKey = BundleUtils.getCustomerSecretToken(arguments);
+        }
     }
 
     @Override
@@ -47,10 +59,7 @@ public class UpdateStatusFragment extends Fragment {
         statusEditText = (EditText) rootView.findViewById(R.id.status_text);
         accessToken4j = PreferenceUtils.restoreTwitterAccessToken(getActivity());
 
-        if (getArguments() != null) { // TODO : Add check exists
-            consumerKey = getArguments().getString(CONSUMER_KEY_TAG);
-            consumerSecretKey = getArguments().getString(CONSUMER_SECRET_KEY_TAG);
-        }
+        statusEditText.setText(payload.getStatus());
 
         return rootView;
     }
