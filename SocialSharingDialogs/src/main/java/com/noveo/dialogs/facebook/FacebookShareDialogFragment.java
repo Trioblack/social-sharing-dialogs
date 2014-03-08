@@ -27,9 +27,7 @@
 package com.noveo.dialogs.facebook;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -49,7 +47,6 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
 
     private static final String EXTRA_PAYLOAD = "payload";
     private static final String FRAGMENT_TAG = "facebook_share_dialog";
-    private static final String PACKAGE_FACEBOOK = "com.facebook.katana";
     private Payload payload;
     private UiLifecycleHelper uiHelper;
 
@@ -61,17 +58,6 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         arguments.putSerializable(EXTRA_PAYLOAD, payload);
         fragment.setArguments(arguments);
         return fragment;
-    }
-
-    private static boolean isAppPresent(final Context context) {
-        try {
-            final PackageManager manager = context.getPackageManager();
-            if (manager != null) {
-                manager.getApplicationInfo(PACKAGE_FACEBOOK, 0);
-                return true;
-            }
-        } catch (PackageManager.NameNotFoundException ignore) {}
-        return false;
     }
 
     public Payload getPayload() {
@@ -164,19 +150,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
     }
 
     private void share() {
-        if (isAppPresent(getActivity())) {
-            final FacebookDialog facebookDialog = new FacebookDialog.ShareDialogBuilder(getActivity())
-                .setFragment(this)
-                .setCaption(payload.getCaption())
-                .setDescription(payload.getDescription())
-                .setLink(payload.getLink())
-                .setName(payload.getName())
-                .setPicture(payload.getPicture())
-                .build();
-            uiHelper.trackPendingDialogCall(facebookDialog.present());
-        } else {
-            new FacebookWebDialogFragment().show(getChildFragmentManager(), null);
-        }
+        new FacebookWebDialogFragment().show(getChildFragmentManager(), null);
     }
 
     @Override
