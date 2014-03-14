@@ -1,17 +1,20 @@
 package com.noveo.dialogs.twitter;
 
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
-import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -31,7 +34,7 @@ import java.util.regex.Pattern;
 
 import twitter4j.auth.AccessToken;
 
-class WebViewFragment extends Fragment {
+public class WebViewFragment extends Fragment {
     private String consumerKey;
     private String consumerSecretKey;
 
@@ -45,9 +48,7 @@ class WebViewFragment extends Fragment {
     private AccessToken accessToken4j;
     private TwitterShareDialog.Payload payload;
 
-    public WebViewFragment() {
-        super();
-    }
+    public WebViewFragment() {}
 
     public static WebViewFragment newInstance(final String consumerKey, final String consumerSecretKey, TwitterShareDialog.Payload payload) {
         WebViewFragment fragment = new WebViewFragment();
@@ -76,7 +77,17 @@ class WebViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.webview_fragment_layout, container, false);
 
+        final WindowManager wm = (WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE);
+        final Display display = wm.getDefaultDisplay();
+        final ViewGroup.LayoutParams params = rootView.getLayoutParams();
+        params.width = (int) (0.8*display.getWidth());
+        params.height =(int) (0.8*display.getHeight());
+
+        rootView.setLayoutParams(params);
+
         webView = (WebView) rootView.findViewById(R.id.webview);
+        webView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+
         progressBar = (ProgressBar) rootView.findViewById(R.id.progress);
         service = new ServiceBuilder()
                 .provider(TwitterApi.SSL.class)
@@ -96,18 +107,17 @@ class WebViewFragment extends Fragment {
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
-                return getRequestToken();
+                return getAuthorizationUrl();
             }
 
             @Override
             protected void onPostExecute(final String startUrl) {
-                Log.d("HTMLOUT", startUrl);
                 setupWebView(startUrl);
             }
         }.execute(); // TODO : Add executors for api > 14
     }
 
-    private String getRequestToken() {
+    private String getAuthorizationUrl() {
         if (service != null) {
             requestToken = service.getRequestToken();
             service.getAuthorizationUrl(requestToken);
@@ -124,15 +134,12 @@ class WebViewFragment extends Fragment {
             webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                    Pattern pattern = Pattern.compile("<code>.*</code>");
-                    String html = consoleMessage.message().substring(5);
-                    Matcher matcher = pattern.matcher(html);
+                    final Pattern pattern = Pattern.compile("<code>.*</code>");
+                    final String html = consoleMessage.message().substring(5);
+                    final Matcher matcher = pattern.matcher(html);
                     if (matcher.find()) {
-                        verifyCode = matcher.group(0)
-                                .replace("<code>", "")
-                                .replace("</code>", "");
-                        webView.setVisibility(View.INVISIBLE);
-                        progressBar.setVisibility(View.VISIBLE);
+                        setupProgressState();
+                        verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
 
                         new AsyncTask<Void, Void, Void>() {
                             @Override
@@ -149,10 +156,8 @@ class WebViewFragment extends Fragment {
                                 openSendMessageFragment();
                             }
                         }.execute(); // TODO : Add execute for api > 14?
-
-                        Log.d("HTMLOUT", "Verify : " + verifyCode);
                     } else {
-                        Log.d("HTMLOUT", "Not find");
+                        setupWorkState();
                     }
 
                     return true;
@@ -162,16 +167,17 @@ class WebViewFragment extends Fragment {
             webView.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {
-                    if (progressBar != null) {
-                        progressBar.setVisibility(View.GONE);
-                        if (!startUrl.equals(url)) {
-                            view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
-                        }
+                    if (!startUrl.equals(url)) {
+                        view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
+                    } else {
+                        setupWorkState();
                     }
                 }
             });
 
+
             webView.loadUrl(startUrl);
+
         }
     }
 
@@ -180,5 +186,15 @@ class WebViewFragment extends Fragment {
         final Fragment fragment = UpdateStatusFragment.newInstance(consumerKey, consumerSecretKey, payload);
         fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.commit();
+    }
+
+    private void setupProgressState() {
+        webView.setVisibility(View.INVISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void setupWorkState() {
+        webView.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.INVISIBLE);
     }
 }

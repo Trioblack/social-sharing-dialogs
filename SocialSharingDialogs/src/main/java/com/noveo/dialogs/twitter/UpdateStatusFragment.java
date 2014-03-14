@@ -20,7 +20,7 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 
-class UpdateStatusFragment extends Fragment {
+public class UpdateStatusFragment extends Fragment {
     public EditText statusEditText;
     public Button sendButton;
     public AccessToken accessToken4j;
@@ -28,6 +28,8 @@ class UpdateStatusFragment extends Fragment {
     private String consumerKey;
     private String consumerSecretKey;
     private TwitterShareDialog.Payload payload;
+
+    public UpdateStatusFragment () {}
 
     public static UpdateStatusFragment newInstance(final String consumerKey, final String consumerSecretKey, TwitterShareDialog.Payload payload) {
         UpdateStatusFragment fragment = new UpdateStatusFragment();
