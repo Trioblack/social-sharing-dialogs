@@ -40,12 +40,10 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.FacebookDialog;
 import com.facebook.widget.WebDialog;
-
-import java.io.Serializable;
+import com.noveo.dialogs.utils.BundleUtils;
 
 public class FacebookShareDialogFragment extends DialogFragment implements Session.StatusCallback {
 
-    private static final String EXTRA_PAYLOAD = "facebook_payload";
     private static final String FRAGMENT_TAG = "facebook_share_dialog";
     private Payload payload;
     private UiLifecycleHelper uiHelper;
@@ -55,7 +53,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
 
         final FacebookShareDialogFragment fragment = new FacebookShareDialogFragment();
         final Bundle arguments = new Bundle();
-        arguments.putSerializable(EXTRA_PAYLOAD, payload);
+        BundleUtils.putPayload(arguments, payload);
         fragment.setArguments(arguments);
         return fragment;
     }
@@ -64,24 +62,18 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         return payload;
     }
 
-    private void onHandleArguments(final Bundle arguments) {
-        if (arguments.containsKey(EXTRA_PAYLOAD)) {
-            payload = (Payload)arguments.getSerializable(EXTRA_PAYLOAD);
-        }
-    }
-
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         uiHelper.onSaveInstanceState(outState);
-        outState.putSerializable(EXTRA_PAYLOAD, payload);
+        BundleUtils.putPayload(outState, payload);
     }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final Bundle arguments = getArguments();
-        if (arguments != null) {onHandleArguments(arguments);}
+        payload = (Payload) BundleUtils.getPayload(arguments);
 
         setShowsDialog(false);
 
@@ -93,7 +85,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
     public void onActivityCreated(final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            onHandleArguments(savedInstanceState);
+            payload = (Payload) BundleUtils.getPayload(savedInstanceState);
         } else {
             final Session session = Session.getActiveSession();
             if (session != null && session.isOpened()) {
@@ -198,7 +190,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         }
     }
 
-    public static final class Payload implements Serializable {
+    public static final class Payload implements com.noveo.dialogs.models.Payload {
         private String link;
         private String caption;
         private String description;

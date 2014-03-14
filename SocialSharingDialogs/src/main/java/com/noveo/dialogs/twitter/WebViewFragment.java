@@ -20,6 +20,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.noveo.dialogs.R;
+import com.noveo.dialogs.utils.ApiLevelChooser;
 import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
@@ -67,7 +68,7 @@ public class WebViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
         final Bundle arguments = getArguments();
         if (arguments != null) {
-            payload = BundleUtils.getPayload(arguments);
+            payload = (TwitterShareDialog.Payload) BundleUtils.getPayload(arguments);
             consumerKey = BundleUtils.getCustomerToken(arguments);
             consumerSecretKey = BundleUtils.getCustomerSecretToken(arguments);
         }
@@ -104,9 +105,9 @@ public class WebViewFragment extends Fragment {
     }
 
     private void registration() {
-        new AsyncTask<Void, Void, String>() {
+        AsyncTask<Object, Void, String> task = new AsyncTask<Object, Void, String>() {
             @Override
-            protected String doInBackground(Void... params) {
+            protected String doInBackground(Object... params) {
                 return getAuthorizationUrl();
             }
 
@@ -114,7 +115,9 @@ public class WebViewFragment extends Fragment {
             protected void onPostExecute(final String startUrl) {
                 setupWebView(startUrl);
             }
-        }.execute(); // TODO : Add executors for api > 14
+        };
+
+        ApiLevelChooser.<Object, Void, String>startAsyncTask(task);
     }
 
     private String getAuthorizationUrl() {
@@ -141,9 +144,9 @@ public class WebViewFragment extends Fragment {
                         setupProgressState();
                         verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
 
-                        new AsyncTask<Void, Void, Void>() {
+                        AsyncTask<Object, Void, Void> task = new AsyncTask<Object, Void, Void>() {
                             @Override
-                            protected Void doInBackground(Void... params) {
+                            protected Void doInBackground(Object... params) {
                                 Verifier verifier = new Verifier(verifyCode);
                                 accessToken = service.getAccessToken(requestToken, verifier);
                                 accessToken4j = new AccessToken(accessToken.getToken(), accessToken.getSecret());
@@ -155,7 +158,10 @@ public class WebViewFragment extends Fragment {
                             protected void onPostExecute(Void aVoid) {
                                 openSendMessageFragment();
                             }
-                        }.execute(); // TODO : Add execute for api > 14?
+                        };
+
+                        ApiLevelChooser.<Object, Void, Void>startAsyncTask(task);
+
                     } else {
                         setupWorkState();
                     }

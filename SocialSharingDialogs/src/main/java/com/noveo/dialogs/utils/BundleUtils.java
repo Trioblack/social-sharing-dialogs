@@ -2,7 +2,7 @@ package com.noveo.dialogs.utils;
 
 import android.os.Bundle;
 
-import com.noveo.dialogs.twitter.TwitterShareDialog;
+import com.noveo.dialogs.models.Payload;
 
 public class BundleUtils {
     private static final String TOKEN_CUSTOMER_KEY = "auth_customer_token";
@@ -11,15 +11,15 @@ public class BundleUtils {
         throw new UnsupportedOperationException();
     }
 
-    public static void putPayload(final Bundle bundle, final TwitterShareDialog.Payload payload) {
+    public static void putPayload(final Bundle bundle, final Payload payload) {
         if (bundle != null && payload != null) {
-            bundle.putSerializable(payload.getClass().getName(), payload);
+            bundle.putSerializable(Payload.class.getName(), payload);
         }
     }
 
-    public static TwitterShareDialog.Payload getPayload(final Bundle bundle) {
-        if (bundle != null && bundle.containsKey(TwitterShareDialog.Payload.class.getName())) {
-            return (TwitterShareDialog.Payload) bundle.getSerializable(TwitterShareDialog.Payload.class.getName());
+    public static Payload getPayload(final Bundle bundle) {
+        if (bundle != null && bundle.containsKey(Payload.class.getName())) {
+            return (Payload) bundle.getSerializable(Payload.class.getName());
         }
         return null;
     }

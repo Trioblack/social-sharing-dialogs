@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.noveo.dialogs.R;
+import com.noveo.dialogs.utils.ApiLevelChooser;
 import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
@@ -48,7 +49,7 @@ public class UpdateStatusFragment extends Fragment {
         super.onCreate(savedInstanceState);
         final Bundle arguments = getArguments();
         if (arguments != null) {
-            payload = BundleUtils.getPayload(arguments);
+            payload = (TwitterShareDialog.Payload) BundleUtils.getPayload(arguments);
             consumerKey = BundleUtils.getCustomerToken(arguments);
             consumerSecretKey = BundleUtils.getCustomerSecretToken(arguments);
         }
@@ -71,9 +72,9 @@ public class UpdateStatusFragment extends Fragment {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AsyncTask<Void, Void, Void>() {
+                AsyncTask<Object, Void, Void> task = new AsyncTask<Object, Void, Void>() {
                     @Override
-                    protected Void doInBackground(Void... params) {
+                    protected Void doInBackground(Object... params) {
                         updateStatus();
                         return null;
                     }
@@ -84,7 +85,9 @@ public class UpdateStatusFragment extends Fragment {
                             ((TwitterShareDialog) getParentFragment()).dismiss();
                         }
                     }
-                }.execute();
+                };
+
+                ApiLevelChooser.<Object, Void, Void>startAsyncTask(task);
             }
         });
     }

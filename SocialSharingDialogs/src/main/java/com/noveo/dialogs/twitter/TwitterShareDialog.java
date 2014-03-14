@@ -14,8 +14,6 @@ import com.noveo.dialogs.R;
 import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
-import java.io.Serializable;
-
 import twitter4j.auth.AccessToken;
 
 public class TwitterShareDialog extends DialogFragment {
@@ -46,7 +44,7 @@ public class TwitterShareDialog extends DialogFragment {
         super.onCreate(savedInstanceState);
         final Bundle arguments = getArguments();
         if (arguments != null) {
-            payload = BundleUtils.getPayload(arguments);
+            payload = (Payload) BundleUtils.getPayload(arguments);
         }
     }
 
@@ -78,7 +76,7 @@ public class TwitterShareDialog extends DialogFragment {
         PreferenceUtils.saveTwitterAccessToken(context, null);
     }
 
-    public static final class Payload implements Serializable {
+    public static final class Payload implements com.noveo.dialogs.models.Payload {
         private String status;
 
         public String getStatus() {
