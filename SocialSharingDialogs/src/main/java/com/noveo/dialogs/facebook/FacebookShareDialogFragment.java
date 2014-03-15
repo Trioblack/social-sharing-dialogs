@@ -55,6 +55,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         final Bundle arguments = new Bundle();
         BundleUtils.putPayload(arguments, payload);
         fragment.setArguments(arguments);
+
         return fragment;
     }
 
@@ -88,6 +89,7 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
             payload = (Payload) BundleUtils.getPayload(savedInstanceState);
         } else {
             final Session session = Session.getActiveSession();
+
             if (session != null && session.isOpened()) {
                 share();
             } else {
@@ -174,7 +176,9 @@ public class FacebookShareDialogFragment extends DialogFragment implements Sessi
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             final FacebookShareDialogFragment parentFragment = (FacebookShareDialogFragment)getParentFragment();
             final Payload payload = parentFragment.getPayload();
-            return new WebDialog.FeedDialogBuilder(getActivity(), Session.getActiveSession())
+
+            Session session = Session.getActiveSession();
+            return new WebDialog.FeedDialogBuilder(getActivity(), session)
                 .setCaption(payload.getCaption())
                 .setDescription(payload.getDescription())
                 .setLink(payload.getLink())

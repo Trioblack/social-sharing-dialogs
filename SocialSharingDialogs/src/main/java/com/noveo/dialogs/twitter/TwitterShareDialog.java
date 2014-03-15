@@ -13,14 +13,21 @@ import android.view.Window;
 
 import com.noveo.dialogs.R;
 import com.noveo.dialogs.utils.BundleUtils;
+import com.noveo.dialogs.utils.MetadataUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
 import twitter4j.auth.AccessToken;
 
 public class TwitterShareDialog extends DialogFragment {
-    private static final String CONSUMER_KEY = "C5Lqexj9p0yHaJuCUoeuQ";
-    private static final String CONSUMER_SECRET = "mO2NZMvVpsU33NbnKiPcrlfFqghjm7sN0kKUjpW2k";
-    private static final String FRAGMENT_TAG = TwitterShareDialog.class.getName();
+//    private static final String CONSUMER_KEY = "C5Lqexj9p0yHaJuCUoeuQ";
+//    private static final String CONSUMER_SECRET = "mO2NZMvVpsU33NbnKiPcrlfFqghjm7sN0kKUjpW2k";
+
+    private static final String NAME_CONSUMER_KEY = "twitter_consumer_key";
+    private static final String NAME_CONSUMER_SECRET_KEY = "twitter_consumer_secret_key";
+
+    private String consumerKey;
+    private String consumerSecretKey;
+
     private Payload payload;
     public AccessToken accessToken4j;
 
@@ -47,6 +54,13 @@ public class TwitterShareDialog extends DialogFragment {
         if (arguments != null) {
             payload = (Payload) BundleUtils.getPayload(arguments);
         }
+
+        consumerKey = MetadataUtils.getMetaString(getActivity(), NAME_CONSUMER_KEY);
+        consumerSecretKey = MetadataUtils.getMetaString(getActivity(), NAME_CONSUMER_SECRET_KEY);
+
+        if (TextUtils.isEmpty(consumerKey) || TextUtils.isEmpty(consumerSecretKey)) {
+            throw new RuntimeException("consumerKey and consumerSecretKey must be set in <meta-data> in AndroidManifest.xml");
+        }
     }
 
     @Override
@@ -63,10 +77,10 @@ public class TwitterShareDialog extends DialogFragment {
         if (savedInstanceState == null) {
             FragmentTransaction fragmentTransaction = getChildFragmentManager().beginTransaction();
             if (accessToken4j == null) {
-                final Fragment fragment = WebViewFragment.newInstance(CONSUMER_KEY, CONSUMER_SECRET, payload);
+                final Fragment fragment = WebViewFragment.newInstance(consumerKey, consumerSecretKey, payload);
                 fragmentTransaction.add(R.id.fragment_container, fragment);
             } else {
-                final Fragment fragment = UpdateStatusFragment.newInstance(CONSUMER_KEY, CONSUMER_SECRET, payload);
+                final Fragment fragment = UpdateStatusFragment.newInstance(consumerKey, consumerSecretKey, payload);
                 fragmentTransaction.add(R.id.fragment_container, fragment);
             }
             fragmentTransaction.commit();

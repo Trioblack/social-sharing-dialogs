@@ -2,8 +2,9 @@
 <resources>
 
     <string name="app_name">SocilaSharingDialogs</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="facebook_app_id">314580258655401</string>
+    <string name="twitter_consumer_key">C5Lqexj9p0yHaJuCUoeuQ</string>
+    <string name="twitter_consumer_secret_key">mO2NZMvVpsU33NbnKiPcrlfFqghjm7sN0kKUjpW2k</string>
 
 </resources>
