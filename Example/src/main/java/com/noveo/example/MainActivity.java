@@ -45,7 +45,8 @@ public class MainActivity extends ActionBarActivity {
 
     private void openTwitterShare() {
         final TwitterShareDialog.Payload payload = new TwitterShareDialog.Payload();
-        payload.setStatus("Test twitter api");
+        payload.setMessage("Test twitter api");
+        payload.setLink("http://google.com/");
         TwitterShareDialog dialog = TwitterShareDialog.newInstance(payload);
         dialog.show(getSupportFragmentManager(), null);
     }

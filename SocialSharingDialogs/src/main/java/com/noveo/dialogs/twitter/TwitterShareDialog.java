@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,14 +78,32 @@ public class TwitterShareDialog extends DialogFragment {
     }
 
     public static final class Payload implements com.noveo.dialogs.models.Payload {
-        private String status;
+        private String message;
+        private String link;
 
-        public String getStatus() {
-            return status;
+        public String getMessage() {
+            return message;
         }
 
-        public void setStatus(String status) {
-            this.status = status;
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public String getLink() {
+            return link;
+        }
+
+        public void setLink(String link) {
+            this.link = link;
+        }
+
+        public String getStatus() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(message);
+            if (!TextUtils.isEmpty(message)) { builder.append(" "); }
+            builder.append(link);
+
+            return builder.toString();
         }
     }
 }

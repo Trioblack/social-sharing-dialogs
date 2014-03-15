@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="default_width">300dp</dimen>
+    <dimen name="default_height">400dp</dimen>
+    <dimen name="margin_twitt_length">10dp</dimen>
+</resources>

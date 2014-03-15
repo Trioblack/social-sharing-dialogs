@@ -17,5 +17,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:+'
     compile 'com.facebook.android:facebook:3.6+'
     compile 'org.twitter4j:twitter4j-core:3.0.+'
+    compile 'com.twitter:twitter-text:1.6.+'
     compile 'org.scribe:scribe:1.3.+'
 }
