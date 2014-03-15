@@ -1,1 +1,1 @@
-include ':SocialSharingDialogs', ':Example'
+include ':Example', 'socialsharingdialogs'

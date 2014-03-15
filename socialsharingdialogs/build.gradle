@@ -1,0 +1,49 @@
+apply plugin: 'android-library'
+apply plugin: 'maven'
+
+def computeVersionName() {
+    '0.0.1'
+}
+
+def computePackageName() {
+    "com.noveo.dialogs"
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+
+    defaultConfig {
+        minSdkVersion 8
+        targetSdkVersion 19
+        versionCode 1
+        versionName computeVersionName()
+        packageName computePackageName()
+    }
+
+
+    lintOptions {
+        abortOnError false
+    }
+
+}
+
+uploadArchives {
+    project.version = computeVersionName()
+    project.group = computePackageName()
+    repositories {
+        mavenDeployer {
+            repository(url: "file://localhost/home/seven/Experemental/mvn-repo/")
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile 'com.android.support:appcompat-v7:+'
+    compile 'com.facebook.android:facebook:3.6+'
+    compile 'org.twitter4j:twitter4j-core:3.0.+'
+    compile 'com.twitter:twitter-text:1.6.+'
+    compile 'org.scribe:scribe:1.3.+'
+}
