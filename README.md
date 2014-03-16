@@ -28,7 +28,7 @@ dependencies {
 How to use
 --------------------
 
-First you must generate applicationId for facebook and pair of api consumer keys for twitter.
+First you must generate [applicationId][1] for facebook and pair of [api consumer keys][2] for twitter.
 
 Then append to AndroidManifest.xml in application section:
 ```xml
@@ -70,3 +70,5 @@ payload.setLink("http://google.com/");
 final TwitterShareDialog dialog = TwitterShareDialog.newInstance(payload);
 dialog.show(getSupportFragmentManager(), null);
 ```
+  [1]: https://www.google.ru/url?sa=t&rct=j&q=&esrc=s&source=web&cd=3&cad=rja&uact=8&ved=0CDsQFjAC&url=https%3A%2F%2Fdevelopers.facebook.com%2Fapps&ei=w24lU66VIoGU4ATH04B4&usg=AFQjCNFc1hDNo7MCSTqnT-YIQdISR7hgeQ&sig2=VQMh8zmnNnRaerfrE0YeYw&bvm=bv.62922401,d.bGE
+  [2]: https://apps.twitter.com/app/new
