@@ -1,4 +1,4 @@
-SocilaSharingDialogs
+SocialSharingDialogs
 ====================
 
 SocilaSharingDialogs is simple library for sharing in social network (while only facebook and twitter) without use mechanism of intents on android.
