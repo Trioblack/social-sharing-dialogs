@@ -1,4 +1,4 @@
-SocialSharingDialogs
+social-sharing-dialogs
 ====================
 
 SocilaSharingDialogs is simple library for sharing in social network (while only facebook and twitter) without use mechanism of intents on android.
@@ -11,7 +11,7 @@ repositories {
   mavenCentral()
 
   maven {
-    url 'https://github.com/tttzof351/maven-repository/raw/master/' // For SocialSharingDialogs
+    url 'https://github.com/tttzof351/maven-repository/raw/master/' // For social-sharing-dialogs
   }
 
   maven {
