@@ -20,9 +20,6 @@ import com.noveo.dialogs.utils.PreferenceUtils;
 import twitter4j.auth.AccessToken;
 
 public class TwitterShareDialog extends DialogFragment {
-//    private static final String CONSUMER_KEY = "C5Lqexj9p0yHaJuCUoeuQ";
-//    private static final String CONSUMER_SECRET = "mO2NZMvVpsU33NbnKiPcrlfFqghjm7sN0kKUjpW2k";
-
     private static final String NAME_CONSUMER_KEY = "twitter_consumer_key";
     private static final String NAME_CONSUMER_SECRET_KEY = "twitter_consumer_secret_key";
     private static final String FRAGMENT_TAG = "twitter_share_dialog";

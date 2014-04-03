@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,10 @@ import org.scribe.oauth.OAuthService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Func1;
+import rx.functions.Func2;
 import twitter4j.auth.AccessToken;
 
 public class WebViewFragment extends Fragment {
@@ -43,7 +48,6 @@ public class WebViewFragment extends Fragment {
     public WebView webView;
 
     private OAuthService service;
-    private String verifyCode = null;
     private Token requestToken;
     private Token accessToken;
     private AccessToken accessToken4j;
@@ -105,6 +109,14 @@ public class WebViewFragment extends Fragment {
     }
 
     private void registration() {
+        rx.Observable.zip(
+                webChromeCallback.map(verifyCode),
+                registrationToken.map(setupWebView),
+                openMessageFragment
+        ).subscribe();
+
+
+        /*
         AsyncTask<Object, Void, String> task = new AsyncTask<Object, Void, String>() {
             @Override
             protected String doInBackground(Object... params) {
@@ -118,8 +130,130 @@ public class WebViewFragment extends Fragment {
         };
 
         ApiLevelChooser.<Object, Void, String>startAsyncTask(task);
+        */
     }
 
+    private Func2 openMessageFragment = new Func2() {
+        @Override
+        public Object call(Object o, Object o2) {
+            openSendMessageFragment();
+            return null;
+        }
+    };
+
+    private Func1<String, Void> setupWebView = new Func1<String, Void>() {
+        @Override
+        public Void call(final String startUrl) {
+            Log.d("WEB_FRAGMENT_LOG", "setupWebView: " + startUrl + " : " + Thread.currentThread());
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("WEB_FRAGMENT_LOG", "setupWebView main thread: " + Thread.currentThread());
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    webView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            if (!startUrl.equals(url)) {
+                                view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
+                            } else {
+                                setupWorkState();
+                            }
+                        }
+                    });
+
+                    webView.loadUrl(startUrl);
+                }
+            });
+
+            /*
+            Handler handler = new Handler(Looper.myLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("WEB_FRAGMENT_LOG", "setupWebView main handler: " + Thread.currentThread());
+                    webView.getSettings().setJavaScriptEnabled(true);
+                    webView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            if (!startUrl.equals(url)) {
+                                view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
+                            } else {
+                                setupWorkState();
+                            }
+                        }
+                    });
+
+                    webView.loadUrl(startUrl);
+                }
+            });
+            */
+            Log.d("WEB_FRAGMENT_LOG", "return setupWebView: " + Thread.currentThread());
+            return null;
+        }
+    };
+
+    private Func1<String, Void> verifyCode = new Func1<String, Void>() {
+        @Override
+        public Void call(final String code) {
+            Log.d("WEB_FRAGMENT_LOG", "verifyCode: " + Thread.currentThread());
+            new Thread() {
+                @Override
+                public void run() {
+                    verifyCode(code);
+                }
+            }.start();
+            return null;
+        }
+    };
+
+    private rx.Observable registrationToken = rx.Observable.create(new rx.Observable.OnSubscribe<String>() {
+        @Override
+        public void call(final Subscriber<? super String> subscriber) {
+            new Thread() {
+                @Override
+                public void run() {
+                    if (service != null) {
+                        requestToken = service.getRequestToken();
+                        service.getAuthorizationUrl(requestToken);
+                        Log.d("WEB_FRAGMENT_LOG", "questToken : " + requestToken);
+                        subscriber.onNext(service.getAuthorizationUrl(requestToken));
+                    } else {
+                        subscriber.onNext(null);
+                    }
+                }
+            }.start();
+        }
+    });
+
+    private rx.Observable webChromeCallback = Observable.create(new Observable.OnSubscribe<String>() {
+        @Override
+        public void call(final Subscriber<? super String> subscriber) {
+            Log.d("WEB_FRAGMENT_LOG", "set webChromeClient thread: " + Thread.currentThread());
+            webView.setWebChromeClient(new WebChromeClient() {
+                @Override
+                public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                    final Pattern pattern = Pattern.compile("<code>.*</code>");
+                    final String html = consoleMessage.message().substring(5);
+                    final Matcher matcher = pattern.matcher(html);
+                    if (matcher.find()) {
+                        setupProgressState();
+
+                        String verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
+                        subscriber.onNext(verifyCode);
+
+                    } else {
+                        setupWorkState();
+                    }
+
+                    subscriber.onCompleted();
+                    return true;
+                }
+            });
+        }
+    });
+
+
+    /*
     private String getAuthorizationUrl() {
         if (service != null) {
             requestToken = service.getRequestToken();
@@ -129,6 +263,7 @@ public class WebViewFragment extends Fragment {
             return null;
         }
     }
+    */
 
     private void setupWebView(final String startUrl) {
         if (webView != null && !TextUtils.isEmpty(startUrl)) {
@@ -142,15 +277,12 @@ public class WebViewFragment extends Fragment {
                     final Matcher matcher = pattern.matcher(html);
                     if (matcher.find()) {
                         setupProgressState();
-                        verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
 
+                        final String verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
                         AsyncTask<Object, Void, Void> task = new AsyncTask<Object, Void, Void>() {
                             @Override
                             protected Void doInBackground(Object... params) {
-                                Verifier verifier = new Verifier(verifyCode);
-                                accessToken = service.getAccessToken(requestToken, verifier);
-                                accessToken4j = new AccessToken(accessToken.getToken(), accessToken.getSecret());
-                                PreferenceUtils.saveTwitterAccessToken(getActivity(), accessToken4j);
+                                verifyCode(verifyCode);
                                 return null;
                             }
 
@@ -181,10 +313,16 @@ public class WebViewFragment extends Fragment {
                 }
             });
 
-
             webView.loadUrl(startUrl);
 
         }
+    }
+
+    private void verifyCode(String verifyCode) {
+        Verifier verifier = new Verifier(verifyCode);
+        accessToken = service.getAccessToken(requestToken, verifier);
+        accessToken4j = new AccessToken(accessToken.getToken(), accessToken.getSecret());
+        PreferenceUtils.saveTwitterAccessToken(getActivity(), accessToken4j);
     }
 
     private void openSendMessageFragment() {
