@@ -27,7 +27,7 @@ android {
 }
 
 dependencies {
-    compile project(':socialsharingdialogs')
+    compile project(':SocialSharingDialogs')
     compile 'com.android.support:appcompat-v7:+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
