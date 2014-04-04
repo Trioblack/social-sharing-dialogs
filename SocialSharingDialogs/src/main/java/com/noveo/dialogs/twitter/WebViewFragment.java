@@ -2,11 +2,9 @@ package com.noveo.dialogs.twitter;
 
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -21,7 +19,6 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.noveo.dialogs.R;
-import com.noveo.dialogs.utils.ApiLevelChooser;
 import com.noveo.dialogs.utils.BundleUtils;
 import com.noveo.dialogs.utils.PreferenceUtils;
 
@@ -114,28 +111,12 @@ public class WebViewFragment extends Fragment {
                 registrationToken.map(setupWebView),
                 openMessageFragment
         ).subscribe();
-
-
-        /*
-        AsyncTask<Object, Void, String> task = new AsyncTask<Object, Void, String>() {
-            @Override
-            protected String doInBackground(Object... params) {
-                return getAuthorizationUrl();
-            }
-
-            @Override
-            protected void onPostExecute(final String startUrl) {
-                setupWebView(startUrl);
-            }
-        };
-
-        ApiLevelChooser.<Object, Void, String>startAsyncTask(task);
-        */
     }
 
-    private Func2 openMessageFragment = new Func2() {
+    private Func2<Void, Void, Void> openMessageFragment = new Func2<Void, Void, Void>() {
         @Override
-        public Object call(Object o, Object o2) {
+        public Void call(Void o, Void o2) {
+            Log.d("WEB_FRAGMENT_LOG", "openMessageFragment");
             openSendMessageFragment();
             return null;
         }
@@ -148,8 +129,8 @@ public class WebViewFragment extends Fragment {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("WEB_FRAGMENT_LOG", "setupWebView main thread: " + Thread.currentThread());
                     webView.getSettings().setJavaScriptEnabled(true);
+
                     webView.setWebViewClient(new WebViewClient() {
                         @Override
                         public void onPageFinished(WebView view, String url) {
@@ -164,30 +145,6 @@ public class WebViewFragment extends Fragment {
                     webView.loadUrl(startUrl);
                 }
             });
-
-            /*
-            Handler handler = new Handler(Looper.myLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d("WEB_FRAGMENT_LOG", "setupWebView main handler: " + Thread.currentThread());
-                    webView.getSettings().setJavaScriptEnabled(true);
-                    webView.setWebViewClient(new WebViewClient() {
-                        @Override
-                        public void onPageFinished(WebView view, String url) {
-                            if (!startUrl.equals(url)) {
-                                view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
-                            } else {
-                                setupWorkState();
-                            }
-                        }
-                    });
-
-                    webView.loadUrl(startUrl);
-                }
-            });
-            */
-            Log.d("WEB_FRAGMENT_LOG", "return setupWebView: " + Thread.currentThread());
             return null;
         }
     };
@@ -228,7 +185,7 @@ public class WebViewFragment extends Fragment {
     private rx.Observable webChromeCallback = Observable.create(new Observable.OnSubscribe<String>() {
         @Override
         public void call(final Subscriber<? super String> subscriber) {
-            Log.d("WEB_FRAGMENT_LOG", "set webChromeClient thread: " + Thread.currentThread());
+            Log.d("WEB_FRAGMENT_LOG", "webChromeCallback thread: " + Thread.currentThread());
             webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
@@ -245,78 +202,11 @@ public class WebViewFragment extends Fragment {
                         setupWorkState();
                     }
 
-                    subscriber.onCompleted();
                     return true;
                 }
             });
         }
     });
-
-
-    /*
-    private String getAuthorizationUrl() {
-        if (service != null) {
-            requestToken = service.getRequestToken();
-            service.getAuthorizationUrl(requestToken);
-            return service.getAuthorizationUrl(requestToken);
-        } else {
-            return null;
-        }
-    }
-    */
-
-    private void setupWebView(final String startUrl) {
-        if (webView != null && !TextUtils.isEmpty(startUrl)) {
-            webView.getSettings().setJavaScriptEnabled(true);
-
-            webView.setWebChromeClient(new WebChromeClient() {
-                @Override
-                public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-                    final Pattern pattern = Pattern.compile("<code>.*</code>");
-                    final String html = consoleMessage.message().substring(5);
-                    final Matcher matcher = pattern.matcher(html);
-                    if (matcher.find()) {
-                        setupProgressState();
-
-                        final String verifyCode = matcher.group(0).replace("<code>", "").replace("</code>", "");
-                        AsyncTask<Object, Void, Void> task = new AsyncTask<Object, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Object... params) {
-                                verifyCode(verifyCode);
-                                return null;
-                            }
-
-                            @Override
-                            protected void onPostExecute(Void aVoid) {
-                                openSendMessageFragment();
-                            }
-                        };
-
-                        ApiLevelChooser.<Object, Void, Void>startAsyncTask(task);
-
-                    } else {
-                        setupWorkState();
-                    }
-
-                    return true;
-                }
-            });
-
-            webView.setWebViewClient(new WebViewClient() {
-                @Override
-                public void onPageFinished(WebView view, String url) {
-                    if (!startUrl.equals(url)) {
-                        view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
-                    } else {
-                        setupWorkState();
-                    }
-                }
-            });
-
-            webView.loadUrl(startUrl);
-
-        }
-    }
 
     private void verifyCode(String verifyCode) {
         Verifier verifier = new Verifier(verifyCode);
