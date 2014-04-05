@@ -174,10 +174,10 @@ public class WebViewFragment extends Fragment {
                         service.getAuthorizationUrl(requestToken);
                         Log.d("WEB_FRAGMENT_LOG", "questToken : " + requestToken);
                         subscriber.onNext(service.getAuthorizationUrl(requestToken));
-                    } else {
+                   } else {
                         subscriber.onNext(null);
-                    }
                 }
+            }
             }.start();
         }
     });
@@ -189,6 +189,7 @@ public class WebViewFragment extends Fragment {
             webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                    Log.d("WEB_FRAGMENT_LOG", "onConsoleMessage");
                     final Pattern pattern = Pattern.compile("<code>.*</code>");
                     final String html = consoleMessage.message().substring(5);
                     final Matcher matcher = pattern.matcher(html);
