@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.Subscription;
+import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import twitter4j.auth.AccessToken;
@@ -49,6 +51,7 @@ public class WebViewFragment extends Fragment {
     private Token accessToken;
     private AccessToken accessToken4j;
     private TwitterShareDialog.Payload payload;
+    private Subscription registration;
 
     public WebViewFragment() {}
 
@@ -105,9 +108,17 @@ public class WebViewFragment extends Fragment {
         registration();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (registration != null) {
+            registration.unsubscribe();
+        }
+    }
+
     private void registration() {
-        rx.Observable.zip(
-                webChromeCallback.map(verifyCode),
+        registration = rx.Observable.zip(
+                setupChromeCallback.map(verifyCode),
                 registrationToken.map(setupWebView),
                 openMessageFragment
         ).subscribe();
@@ -129,20 +140,23 @@ public class WebViewFragment extends Fragment {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    webView.getSettings().setJavaScriptEnabled(true);
+                    try {
+                        webView.getSettings().setJavaScriptEnabled(true);
 
-                    webView.setWebViewClient(new WebViewClient() {
-                        @Override
-                        public void onPageFinished(WebView view, String url) {
-                            if (!startUrl.equals(url)) {
-                                view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
-                            } else {
-                                setupWorkState();
+                        webView.setWebViewClient(new WebViewClient() {
+                            @Override
+                            public void onPageFinished(WebView view, String url) {
+                                if (!startUrl.equals(url)) {
+                                    view.loadUrl("javascript:console.log('HTMLOUT'+document.getElementsByTagName('html')[0].innerHTML);");
+                                } else {
+                                    setupWorkState();
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    webView.loadUrl(startUrl);
+                        webView.loadUrl(startUrl);
+                    } catch (OnErrorNotImplementedException ignore) {
+                    }
                 }
             });
             return null;
@@ -169,23 +183,27 @@ public class WebViewFragment extends Fragment {
             new Thread() {
                 @Override
                 public void run() {
-                    if (service != null) {
-                        requestToken = service.getRequestToken();
-                        service.getAuthorizationUrl(requestToken);
-                        Log.d("WEB_FRAGMENT_LOG", "questToken : " + requestToken);
-                        subscriber.onNext(service.getAuthorizationUrl(requestToken));
-                   } else {
-                        subscriber.onNext(null);
-                }
+                    try {
+                        if (service != null) {
+                            requestToken = service.getRequestToken();
+                            service.getAuthorizationUrl(requestToken);
+                            Log.d("WEB_FRAGMENT_LOG", "questToken : " + requestToken);
+                            subscriber.onNext(service.getAuthorizationUrl(requestToken));
+                        } else {
+                            subscriber.onNext(null);
+                        }
+                    } catch (OnErrorNotImplementedException ignore) {
+
+                    }
             }
             }.start();
         }
     });
 
-    private rx.Observable webChromeCallback = Observable.create(new Observable.OnSubscribe<String>() {
+    private rx.Observable setupChromeCallback = Observable.create(new Observable.OnSubscribe<String>() {
         @Override
         public void call(final Subscriber<? super String> subscriber) {
-            Log.d("WEB_FRAGMENT_LOG", "webChromeCallback thread: " + Thread.currentThread());
+            Log.d("WEB_FRAGMENT_LOG", "setupChromeCallback thread: " + Thread.currentThread());
             webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public boolean onConsoleMessage(ConsoleMessage consoleMessage) {

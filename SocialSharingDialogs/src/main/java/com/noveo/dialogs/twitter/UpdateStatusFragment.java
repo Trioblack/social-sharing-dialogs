@@ -127,26 +127,20 @@ public class UpdateStatusFragment extends Fragment {
     }
 
     private void updateTwittLength() {
-        AsyncTask<Object, Void, Integer> task = new AsyncTask<Object, Void, Integer>() {
-            @Override
-            protected Integer doInBackground(Object... params) {
-                return getRemainingNumberCharts();
+        try {
+            int remainingNumber = getRemainingNumberCharts();
+            int color = 0;
+
+            if (remainingNumber >= 0) {
+                color = getResources().getColor(android.R.color.black);
+            } else {
+                color = getResources().getColor(R.color.red);
             }
 
-            @Override
-            protected void onPostExecute(Integer remainingNumber) {
-                int color = 0;
-                if (remainingNumber >= 0) {
-                    color = getResources().getColor(android.R.color.black);
-                } else {
-                    color = getResources().getColor(R.color.red);
-                }
-                twittLength.setTextColor(color);
-                twittLength.setText("" + remainingNumber);
-            }
-        };
-
-        ApiLevelChooser.startAsyncTask(task);
+            twittLength.setTextColor(color);
+            twittLength.setText("" + remainingNumber);
+        } catch (IllegalStateException ignore) {
+        }
     }
 
     private void onClickSendButton() {

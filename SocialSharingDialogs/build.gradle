@@ -2,7 +2,7 @@ apply plugin: 'android-library'
 apply plugin: 'maven'
 
 def computeVersionName() {
-    '0.0.1'
+    '0.0.2'
 }
 
 def computePackageName() {
@@ -33,7 +33,7 @@ uploadArchives {
     project.group = computePackageName()
     repositories {
         mavenDeployer {
-            repository(url: "file://localhost/home/seven/Experemental/mvn-repo/")
+            repository(url: "file://localhost/home/seven/Experemental/maven-repository")
         }
     }
 }
