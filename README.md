@@ -1,3 +1,8 @@
+<h1>
+  <font color="red">Don't supported, please don't use</font>
+</h1>
+
+
 social-sharing-dialogs
 ====================
 
